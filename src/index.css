@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  color: #1f4435; /* hopscotch-forest */
+}
+
+/* Custom styles for form elements */
+input[type="date"] {
+  min-height: 44px;
+}
+
+/* Ensure touch targets are large enough on mobile */
+@media (max-width: 640px) {
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 24px;
+    min-height: 24px;
+  }
+}

@@ -1,6 +1,25 @@
-# Hopscotch Nurseries Funding Calculator
+# Hopscotch Nurseries Funding Tools
 
-A single-page funding calculator for Hopscotch Children's Nurseries (Brighton & Hove sites: Preston Park, Seven Dials, West Hove).
+A suite of funding tools for Hopscotch Children's Nurseries.
+
+## Apps
+
+### 1. Funding Calculator (Parent-facing)
+A single-page funding calculator for parents to estimate childcare costs with government funding applied.
+
+**Location:** Root directory (`/`)
+**URL:** Main Vercel deployment
+
+### 2. Staff Tools - Response Generator (Staff-only)
+An internal tool for staff to generate draft responses to parent funding queries using AI.
+
+**Location:** `/staff-tools`
+**URL:** Separate Vercel deployment (not linked from parent site)
+**Features:**
+- Generates warm, accurate responses to funding questions
+- Uses the same pricing data as the calculator
+- No data storage - just produces text to copy/paste
+- Requires Anthropic API key (stored in browser only)
 
 ## Features
 
@@ -50,13 +69,24 @@ npm run preview
 
 ## Deployment
 
-### Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<repository-url>)
+### Main Calculator (Vercel)
 
 1. Push your code to GitHub
 2. Import the repository in Vercel
 3. Deploy (Vercel auto-detects Vite projects)
+4. This deploys the parent-facing calculator
+
+### Staff Tools (Separate Vercel Project)
+
+1. In Vercel, create a **new project** from the same repo
+2. In Project Settings:
+   - **Root Directory:** `staff-tools`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Deploy to a separate URL (e.g., `hopscotch-staff-tools.vercel.app`)
+4. Share this URL with staff only - not linked from parent site
+
+The staff tools use the same nursery config (`/src/utils/nurseryConfig.js`) ensuring pricing stays in sync.
 
 ### Netlify
 

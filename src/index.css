@@ -2,12 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ivar Display - Brand display font for headers */
+@font-face {
+  font-family: 'Ivar Display';
+  src: url('/fonts/IvarDisplay-Medium.woff2') format('woff2'),
+       url('/fonts/IvarDisplay-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Greycliff CF - Brand body font */
+@font-face {
+  font-family: 'Greycliff CF';
+  src: url('/fonts/GreycliffCF-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Greycliff CF';
+  src: url('/fonts/GreycliffCF-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Greycliff CF';
+  src: url('/fonts/GreycliffCF-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-family: 'Greycliff CF', system-ui, -apple-system, sans-serif;
   color: #1f4435; /* hopscotch-forest */
 }
 

@@ -25,10 +25,10 @@ export default {
         }
       },
       fontFamily: {
-        // Ivar Display for headers (using similar serif fallbacks)
-        display: ['"Playfair Display"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
-        // Greycliffe for body (using similar sans fallbacks)
-        body: ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        // Ivar Display for headers (brand font)
+        display: ['"Ivar Display"', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
+        // Greycliff CF for body (brand font)
+        body: ['"Greycliff CF"', 'system-ui', '-apple-system', 'sans-serif'],
       }
     },
   },

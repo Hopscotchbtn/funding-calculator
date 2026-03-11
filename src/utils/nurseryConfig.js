@@ -7,14 +7,14 @@ export const NURSERIES = {
     phone: '01273 385577',
     email: 'office@hopscotchmail.com',
     sessions: {
-      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 69.00 },
-      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 37.00, existingOnly: true },
-      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 34.00, existingOnly: true },
+      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 72.00 },
+      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 38.00, existingOnly: true },
+      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 35.00, existingOnly: true },
     },
     extras: {
-      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.00 },
-      lateFinish: { name: 'Late finish', time: '5:30pm - 6pm', fee: 9.00 },
-      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.00, requiresPartial: true },
+      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.40 },
+      lateFinish: { name: 'Late finish', time: '5:30pm - 6pm', fee: 9.40 },
+      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
       hotLunch: { name: 'Hot lunch', fee: 4.16 },
@@ -23,7 +23,7 @@ export const NURSERIES = {
     funding: {
       enrichmentPerHour: 1.50,
       enrichmentFlat22: 33.00,
-      unfundedHourlyRate: 7.26,
+      unfundedHourlyRate: 7.58,
       maxFundedHoursPerDay: null, // No cap
     },
   },
@@ -35,13 +35,13 @@ export const NURSERIES = {
     phone: '01273 584250',
     email: 'peacehaven@hopscotchmail.com',
     sessions: {
-      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 65.00 },
-      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 34.00, existingOnly: true },
-      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 33.00, existingOnly: true },
+      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 68.00 },
+      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 35.00, existingOnly: true },
+      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 34.00, existingOnly: true },
     },
     extras: {
-      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.00 },
-      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.00, requiresPartial: true },
+      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.40 },
+      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
       hotLunch: { name: 'Hot lunch', fee: 4.16 },
@@ -49,7 +49,7 @@ export const NURSERIES = {
     funding: {
       enrichmentPerHour: 1.50,
       enrichmentFlat22: 33.00,
-      unfundedHourlyRate: 6.84,
+      unfundedHourlyRate: 7.16,
       maxFundedHoursPerDay: null,
     },
   },
@@ -61,12 +61,12 @@ export const NURSERIES = {
     phone: '01903 234859',
     email: 'worthing@hopscotchmail.com',
     sessions: {
-      fullDay: { name: 'Full day', time: '8am - 6pm', hours: 10, fee: 67.00 },
-      morning: { name: 'Morning', time: '8am - 1:30pm', hours: 5.5, fee: 37.00, existingOnly: true },
-      afternoon: { name: 'Afternoon', time: '1:30pm - 6pm', hours: 4.5, fee: 34.00, existingOnly: true },
+      fullDay: { name: 'Full day', time: '8am - 6pm', hours: 10, fee: 70.00 },
+      morning: { name: 'Morning', time: '8am - 1:30pm', hours: 5.5, fee: 38.00, existingOnly: true },
+      afternoon: { name: 'Afternoon', time: '1:30pm - 6pm', hours: 4.5, fee: 35.00, existingOnly: true },
     },
     extras: {
-      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.00 },
+      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.40 },
     },
     meals: {
       hotLunch: { name: 'Hot lunch', fee: 4.16 },
@@ -75,7 +75,7 @@ export const NURSERIES = {
     funding: {
       enrichmentPerHour: 1.25,
       enrichmentFlat22: 27.50,
-      unfundedHourlyRate: 6.70,
+      unfundedHourlyRate: 7.00,
       maxFundedHoursPerDay: 10,
     },
   },
@@ -87,15 +87,15 @@ export const NURSERIES = {
     phone: '01323 492123',
     email: 'seaford@hopscotchmail.com',
     sessions: {
-      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 62.00 },
-      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 33.00, existingOnly: true },
-      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 31.00, existingOnly: true },
-      schoolDay: { name: 'School day', time: '8am - 3pm', hours: 7, fee: 52.00, existingOnly: true },
+      fullDay: { name: 'Full day', time: '8am - 5:30pm', hours: 9.5, fee: 64.00 },
+      morning: { name: 'Morning', time: '8am - 12:30pm', hours: 4.5, fee: 34.00, existingOnly: true },
+      afternoon: { name: 'Afternoon', time: '1:30pm - 5:30pm', hours: 4, fee: 32.00, existingOnly: true },
+      schoolDay: { name: 'School day', time: '8am - 3pm', hours: 7, fee: 54.00, existingOnly: true },
     },
     extras: {
-      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.00 },
-      lateFinish: { name: 'Late finish', time: '5:30pm - 6pm', fee: 9.00 },
-      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.00, requiresPartial: true },
+      earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.40 },
+      lateFinish: { name: 'Late finish', time: '5:30pm - 6pm', fee: 9.40 },
+      lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
       hotLunch: { name: 'Hot lunch', fee: 4.16 },
@@ -104,7 +104,7 @@ export const NURSERIES = {
     funding: {
       enrichmentPerHour: 1.50,
       enrichmentFlat22: 33.00,
-      unfundedHourlyRate: 6.53,
+      unfundedHourlyRate: 6.74,
       maxFundedHoursPerDay: null,
     },
   },
@@ -116,7 +116,7 @@ export const NURSERIES = {
     phone: '01273 711480',
     email: 'hovestation@hopscotchmail.com',
     sessions: {
-      fullDay: { name: 'Full day', time: '7:30am - 6:30pm', hours: 11, fee: 75.00 },
+      fullDay: { name: 'Full day', time: '7:30am - 6:30pm', hours: 11, fee: 78.00 },
     },
     extras: {},
     meals: {
@@ -126,7 +126,7 @@ export const NURSERIES = {
     funding: {
       enrichmentPerHour: 1.50,
       enrichmentFlat22: 33.00,
-      unfundedHourlyRate: 6.82,
+      unfundedHourlyRate: 7.09,
       maxFundedHoursPerDay: 10,
     },
     fullDaysOnly: true, // No session options even for existing bookings

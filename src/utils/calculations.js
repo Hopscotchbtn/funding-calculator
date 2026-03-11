@@ -119,25 +119,13 @@ export function determineFundingEligibility(dob, isWorkingParent, referenceDate 
       return { eligible: true, hours: FUNDING.fifteen, stretchedHours: 11, type: '15-hour' };
     }
 
-    // 9 months to 2 years: 15 hours
+    // 9 months to 2 years: 30 hours (from September 2024)
     if (nineMonthStart && today >= nineMonthStart && age.totalMonths >= 9 && age.years < 2) {
-      return { eligible: true, hours: FUNDING.fifteen, stretchedHours: 11, type: '15-hour' };
+      return { eligible: true, hours: FUNDING.thirty, stretchedHours: 22, type: '30-hour' };
     }
 
-    // Check future eligibility
-    if (nineMonthStart && today < nineMonthStart) {
-      return {
-        eligible: false,
-        hours: 0,
-        futureEligibility: {
-          date: nineMonthStart,
-          hours: FUNDING.fifteen,
-          type: '15-hour (from 9 months)'
-        }
-      };
-    }
-
-    if (twoYearStart && today < twoYearStart && age.totalMonths >= 9) {
+    // Check future eligibility for 2-year-olds waiting for term start
+    if (twoYearStart && today < twoYearStart && age.years >= 2 && age.years < 3) {
       return {
         eligible: false,
         hours: 0,
@@ -145,6 +133,32 @@ export function determineFundingEligibility(dob, isWorkingParent, referenceDate 
           date: twoYearStart,
           hours: FUNDING.thirty,
           type: '30-hour (from age 2)'
+        }
+      };
+    }
+
+    // Check future eligibility for 9+ months waiting for term start
+    if (nineMonthStart && today < nineMonthStart && age.totalMonths >= 9 && age.years < 2) {
+      return {
+        eligible: false,
+        hours: 0,
+        futureEligibility: {
+          date: nineMonthStart,
+          hours: FUNDING.thirty,
+          type: '30-hour (from 9 months)'
+        }
+      };
+    }
+
+    // Check future eligibility for under 9 months
+    if (nineMonthStart && today < nineMonthStart && age.totalMonths < 9) {
+      return {
+        eligible: false,
+        hours: 0,
+        futureEligibility: {
+          date: nineMonthStart,
+          hours: FUNDING.thirty,
+          type: '30-hour (from 9 months)'
         }
       };
     }
@@ -160,7 +174,20 @@ export function determineFundingEligibility(dob, isWorkingParent, referenceDate 
       return { eligible: true, hours: FUNDING.fifteen, stretchedHours: 11, type: '15-hour universal' };
     }
 
-    // Check future eligibility
+    // Check future eligibility for 3-year-olds waiting for term start
+    if (threeYearStart && today < threeYearStart && age.years >= 3 && age.years < 5) {
+      return {
+        eligible: false,
+        hours: 0,
+        futureEligibility: {
+          date: threeYearStart,
+          hours: FUNDING.fifteen,
+          type: '15-hour universal (from age 3)'
+        }
+      };
+    }
+
+    // Check future eligibility for under 3
     if (age.years < 3) {
       return {
         eligible: false,
@@ -363,4 +390,74 @@ export function formatDate(date) {
 // Count selected days
 export function countSelectedDays(days) {
   return Object.values(days).filter(day => day.session && day.session !== 'none').length;
+}
+
+// Get application deadline for a funding start date
+export function getApplicationDeadline(fundingStartDate) {
+  if (!fundingStartDate) return null;
+
+  const startMonth = fundingStartDate.getMonth();
+  const startYear = fundingStartDate.getFullYear();
+
+  // Funding starts in January → apply by 31 December
+  if (startMonth === 0) {
+    return { deadline: new Date(startYear - 1, 11, 31), term: 'January' };
+  }
+  // Funding starts in April → apply by 31 March
+  if (startMonth === 3) {
+    return { deadline: new Date(startYear, 2, 31), term: 'April' };
+  }
+  // Funding starts in September → apply by 31 August
+  if (startMonth === 8) {
+    return { deadline: new Date(startYear, 7, 31), term: 'September' };
+  }
+
+  return null;
+}
+
+// Get all funding milestones for a child (past, current, and future)
+export function getFundingMilestones(dob, isWorkingParent, referenceDate = new Date()) {
+  if (!dob) return [];
+
+  const milestones = [];
+  const today = referenceDate;
+  const age = calculateAge(dob, referenceDate);
+
+  if (!age || age.years >= 5) return [];
+
+  if (isWorkingParent === 'working') {
+    // 9 month milestone - 30 hours
+    const nineMonthStart = getNineMonthFundingStart(dob);
+    if (nineMonthStart) {
+      const isPast = today >= nineMonthStart;
+      const applicationInfo = getApplicationDeadline(nineMonthStart);
+      milestones.push({
+        type: '30-hour',
+        label: '30 hours (from 9 months)',
+        date: nineMonthStart,
+        isPast,
+        isCurrent: isPast && age.years < 5,
+        applicationDeadline: applicationInfo?.deadline,
+        term: applicationInfo?.term,
+      });
+    }
+  } else if (isWorkingParent === 'not-working') {
+    // 3 year milestone - 15 hours universal
+    const threeYearStart = getThreeYearFundingStart(dob);
+    if (threeYearStart) {
+      const isPast = today >= threeYearStart;
+      const applicationInfo = getApplicationDeadline(threeYearStart);
+      milestones.push({
+        type: '15-hour universal',
+        label: '15 hours (universal, from age 3)',
+        date: threeYearStart,
+        isPast,
+        isCurrent: isPast && age.years >= 3 && age.years < 5,
+        applicationDeadline: applicationInfo?.deadline,
+        term: applicationInfo?.term,
+      });
+    }
+  }
+
+  return milestones;
 }

@@ -8,6 +8,7 @@ import {
   formatCurrency,
   formatDate,
   countSelectedDays,
+  getFundingMilestones,
 } from '../utils/calculations';
 import { getAllNurseries, getNursery, hasPartialSessions } from '../utils/nurseryConfig';
 import HopscotchLogo from './HopscotchLogo';
@@ -111,6 +112,10 @@ export default function FundingCalculator() {
   );
   const totalHours = useMemo(() => calculateTotalHours(days, nursery), [days, nursery]);
   const selectedDaysCount = useMemo(() => countSelectedDays(days), [days]);
+  const fundingMilestones = useMemo(
+    () => getFundingMilestones(dateOfBirth, fundingEligibility),
+    [dateOfBirth, fundingEligibility]
+  );
 
   // Calculate costs
   const costs = useMemo(() => {
@@ -271,7 +276,7 @@ export default function FundingCalculator() {
     body += `\n\nNOTES\n`;
     body += `-`.repeat(30) + `\n`;
     body += `• This is an estimate - final fees confirmed at booking\n`;
-    body += `• Prices valid from September 2025\n`;
+    body += `• Prices valid from April 2026\n`;
     if (funding.eligible) {
       body += `• Apply for your funding code at childcarechoices.gov.uk\n`;
     }
@@ -369,8 +374,7 @@ export default function FundingCalculator() {
                   <div className="bg-white p-3 rounded-lg">
                     <p className="font-semibold text-hopscotch-apple mb-1">Working families</p>
                     <ul className="text-xs space-y-1">
-                      <li>• From 9 months: <strong>15 hours</strong> free</li>
-                      <li>• From age 2: <strong>30 hours</strong> free</li>
+                      <li>• From 9 months: <strong>30 hours</strong> free</li>
                       <li>• Both parents must work (min £167/week each)</li>
                     </ul>
                   </div>
@@ -474,6 +478,60 @@ export default function FundingCalculator() {
                 <p className="mt-3 text-hopscotch-forest/70 bg-hopscotch-pebble rounded-lg px-4 py-2">
                   Age at start: <span className="font-semibold text-hopscotch-forest">{age.years} years, {age.months} months</span>
                 </p>
+              )}
+
+              {/* Funding Timeline */}
+              {isValidDOB && !isChildOverFive && fundingMilestones.length > 0 && (
+                <div className="mt-4 p-4 bg-hopscotch-fresh-air/10 border border-hopscotch-fresh-air/30 rounded-xl">
+                  <h3 className="font-semibold text-hopscotch-forest mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-hopscotch-fresh-air" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Your Funding Timeline
+                  </h3>
+                  <div className="space-y-3">
+                    {fundingMilestones.map((milestone, index) => (
+                      <div key={index} className={`p-3 rounded-lg ${milestone.isCurrent ? 'bg-hopscotch-apple/10 border border-hopscotch-apple/30' : milestone.isPast ? 'bg-gray-100' : 'bg-white border border-hopscotch-fresh-air/30'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className={`font-semibold ${milestone.isCurrent ? 'text-hopscotch-apple' : 'text-hopscotch-forest'}`}>
+                              {milestone.label}
+                              {milestone.isCurrent && (
+                                <span className="ml-2 text-xs bg-hopscotch-apple text-white px-2 py-0.5 rounded-full">Active now</span>
+                              )}
+                            </p>
+                            <p className="text-sm text-hopscotch-forest/70">
+                              {milestone.isPast ? 'Started' : 'Starts'}: <span className="font-medium">{formatDate(milestone.date)}</span>
+                            </p>
+                          </div>
+                        </div>
+                        {!milestone.isPast && milestone.applicationDeadline && (
+                          <div className="mt-2 p-2 bg-hopscotch-sunshine/20 rounded-lg">
+                            <p className="text-sm text-hopscotch-forest">
+                              <strong>Apply by {formatDate(milestone.applicationDeadline)}</strong> for {milestone.term} start
+                            </p>
+                            <a
+                              href="https://www.childcarechoices.gov.uk"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-hopscotch-fresh-air hover:underline inline-flex items-center gap-1 mt-1"
+                            >
+                              Apply at childcarechoices.gov.uk
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        )}
+                        {milestone.isCurrent && (
+                          <p className="mt-2 text-xs text-hopscotch-forest/60">
+                            Remember to reconfirm your code every 3 months at childcarechoices.gov.uk
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </section>
 
@@ -766,72 +824,83 @@ export default function FundingCalculator() {
                   )}
                 </section>
 
-                {/* Enrichment Fee */}
-                <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-8 h-8 bg-hopscotch-sunshine rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                      {showBookingTypeChoice ? (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '6' : '5') : (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '5' : '4')}
-                    </span>
-                    <h2 className="font-display text-xl text-hopscotch-forest">
-                      Consumables Package
-                      <InfoTooltip text="Government funding doesn't cover consumables like nappies and snacks. Most parents choose our package for convenience, but you can bring your own if you prefer." />
-                    </h2>
-                  </div>
-                  <p className="text-sm text-hopscotch-forest/70 mb-4">
-                    Would you like us to provide nappies, wipes, snacks and other daily essentials?
-                  </p>
-                  <div className="space-y-3">
-                    <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${includeEnrichment ? 'border-hopscotch-apple bg-hopscotch-apple/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
-                      <input
-                        type="radio"
-                        name="enrichment"
-                        value="yes"
-                        checked={includeEnrichment}
-                        onChange={() => setIncludeEnrichment(true)}
-                        className="mt-1 w-5 h-5 text-hopscotch-apple focus:ring-hopscotch-apple"
-                      />
-                      <div>
-                        <span className="font-semibold text-hopscotch-forest">Yes please (recommended)</span>
-                        <p className="text-sm text-hopscotch-forest/60">We provide nappies, wipes, nappy cream, sun cream, snacks & enrichment activities. Nothing to remember each day!</p>
-                      </div>
-                    </label>
-                    <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${!includeEnrichment ? 'border-hopscotch-marmalade bg-hopscotch-marmalade/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
-                      <input
-                        type="radio"
-                        name="enrichment"
-                        value="no"
-                        checked={!includeEnrichment}
-                        onChange={() => setIncludeEnrichment(false)}
-                        className="mt-1 w-5 h-5 text-hopscotch-marmalade focus:ring-hopscotch-marmalade"
-                      />
-                      <div>
-                        <span className="font-semibold text-hopscotch-forest">No thanks, I'll bring my own</span>
-                        <p className="text-sm text-hopscotch-forest/60">You'll need to bring items each day (see list below)</p>
-                      </div>
-                    </label>
-                  </div>
-
-                  {!includeEnrichment && (
-                    <div className="mt-4 p-4 bg-hopscotch-pebble rounded-xl">
-                      <p className="text-hopscotch-forest font-medium mb-2">Items you'll need to provide daily:</p>
-                      <ul className="text-sm text-hopscotch-forest/70 grid grid-cols-1 sm:grid-cols-2 gap-1">
-                        {ITEMS_TO_PROVIDE.map((item, i) => (
-                          <li key={i} className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-hopscotch-marmalade rounded-full"></span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                {/* Enrichment Fee - only shown when funding is eligible */}
+                {funding.eligible && (
+                  <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="w-8 h-8 bg-hopscotch-sunshine rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm">
+                        {showBookingTypeChoice ? (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '6' : '5') : (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '5' : '4')}
+                      </span>
+                      <h2 className="font-display text-xl text-hopscotch-forest">
+                        Consumables Package
+                        <InfoTooltip text="Government funding doesn't cover consumables like nappies and snacks. Most parents choose our package for convenience, but you can bring your own if you prefer." />
+                      </h2>
                     </div>
-                  )}
-                </section>
+                    <p className="text-sm text-hopscotch-forest/70 mb-4">
+                      Would you like us to provide nappies, wipes, snacks and other daily essentials?
+                    </p>
+                    <div className="space-y-3">
+                      <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${includeEnrichment ? 'border-hopscotch-apple bg-hopscotch-apple/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
+                        <input
+                          type="radio"
+                          name="enrichment"
+                          value="yes"
+                          checked={includeEnrichment}
+                          onChange={() => setIncludeEnrichment(true)}
+                          className="mt-1 w-5 h-5 text-hopscotch-apple focus:ring-hopscotch-apple"
+                        />
+                        <div>
+                          <span className="font-semibold text-hopscotch-forest">Yes please (recommended)</span>
+                          <p className="text-sm text-hopscotch-forest/60">We provide nappies, wipes, nappy cream, sun cream, snacks & enrichment activities. Nothing to remember each day!</p>
+                        </div>
+                      </label>
+                      <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${!includeEnrichment ? 'border-hopscotch-marmalade bg-hopscotch-marmalade/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
+                        <input
+                          type="radio"
+                          name="enrichment"
+                          value="no"
+                          checked={!includeEnrichment}
+                          onChange={() => setIncludeEnrichment(false)}
+                          className="mt-1 w-5 h-5 text-hopscotch-marmalade focus:ring-hopscotch-marmalade"
+                        />
+                        <div>
+                          <span className="font-semibold text-hopscotch-forest">No thanks, I'll bring my own</span>
+                          <p className="text-sm text-hopscotch-forest/60">You'll need to bring items each day (see list below)</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {!includeEnrichment && (
+                      <div className="mt-4 p-4 bg-hopscotch-pebble rounded-xl">
+                        <p className="text-hopscotch-forest font-medium mb-2">Items you'll need to provide daily:</p>
+                        <ul className="text-sm text-hopscotch-forest/70 grid grid-cols-1 sm:grid-cols-2 gap-1">
+                          {ITEMS_TO_PROVIDE.map((item, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-hopscotch-marmalade rounded-full"></span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-3 text-xs text-hopscotch-forest/60 italic">
+                          This is an illustrative list only. Please ask your nursery for the full list of items required.
+                        </p>
+                      </div>
+                    )}
+                  </section>
+                )}
 
                 {/* Meals */}
                 {Object.keys(nursery.meals).length > 0 && (
                   <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                     <div className="flex items-center gap-3 mb-4">
                       <span className="w-8 h-8 bg-hopscotch-smiles rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        {showBookingTypeChoice ? (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '7' : '6') : (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '6' : '5')}
+                        {(() => {
+                          let step = 4; // Base: DOB, Days/Sessions, Work Status
+                          if (showBookingTypeChoice) step++; // Booking Type
+                          if (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing') step++; // Additional Options
+                          if (funding.eligible) step++; // Consumables Package
+                          return step;
+                        })()}
                       </span>
                       <h2 className="font-display text-xl text-hopscotch-forest">Meals</h2>
                     </div>
@@ -1023,16 +1092,6 @@ export default function FundingCalculator() {
                       </div>
                     )}
 
-                    {/* Future eligibility */}
-                    {!funding.eligible && funding.futureEligibility && (
-                      <div className="mt-4 p-4 bg-hopscotch-sunshine/20 rounded-xl">
-                        <p className="text-hopscotch-forest/80 text-sm">
-                          Funding available from{' '}
-                          <span className="font-semibold">{formatDate(funding.futureEligibility.date)}</span>
-                        </p>
-                      </div>
-                    )}
-
                     {/* Copy Summary Button */}
                     <button
                       onClick={handleCopyClick}
@@ -1094,7 +1153,7 @@ export default function FundingCalculator() {
 
               {/* Footer info */}
               <div className="mt-6 text-sm text-hopscotch-forest/50 space-y-1 text-center">
-                <p>Prices valid from September 2025</p>
+                <p>Prices valid from April 2026</p>
                 <p>This is an estimate - final fees confirmed at booking</p>
               </div>
             </div>

@@ -127,6 +127,14 @@ export default function FundingCalculator() {
     return calculateUnfundedCost(days, nursery, meals);
   }, [days, nursery, funding, includeEnrichment, meals, selectedDaysCount]);
 
+  // Calculate projected funded costs for future-eligible children
+  const futureCosts = useMemo(() => {
+    if (selectedDaysCount === 0) return null;
+    if (funding.eligible) return null; // already showing current funded cost
+    if (!funding.futureEligibility) return null;
+    return calculateFundedCost(days, nursery, funding.futureEligibility.hours, includeEnrichment, meals);
+  }, [days, nursery, funding, includeEnrichment, meals, selectedDaysCount]);
+
   // Handle day selection for new bookings
   const handleNewBookingDayToggle = (day) => {
     setDays(prev => ({
@@ -278,7 +286,7 @@ export default function FundingCalculator() {
     body += `• This is an estimate - final fees confirmed at booking\n`;
     body += `• Prices valid from April 2026\n`;
     if (funding.eligible) {
-      body += `• Apply for your funding code at childcarechoices.gov.uk\n`;
+      body += `• Apply for your funding code at beststartinlife.gov.uk\n`;
     }
     body += `\n\nContact: ${nursery.email} | ${nursery.phone}\n`;
     body += `Visit: hopscotch.uk.com\n`;
@@ -368,34 +376,34 @@ export default function FundingCalculator() {
             <div className="p-4 pt-0 border-t border-gray-100 bg-hopscotch-pebble/30">
               <div className="space-y-3 text-sm text-hopscotch-forest/80">
                 <p>
-                  <strong className="text-hopscotch-forest">The government helps pay for childcare!</strong> Depending on your circumstances, you could get 15 or 30 hours of free childcare per week.
+                  <strong className="text-hopscotch-forest">The government helps pay for childcare!</strong> Depending on your circumstances, you could get up to 15 or 30 hours of free childcare per week.
                 </p>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="bg-white p-3 rounded-lg">
                     <p className="font-semibold text-hopscotch-apple mb-1">Working families</p>
                     <ul className="text-xs space-y-1">
-                      <li>• From 9 months: <strong>30 hours</strong> free</li>
-                      <li>• Both parents must work (min £167/week each)</li>
+                      <li>• From the term after your child turns 9 months: <strong>up to 30 hours</strong></li>
+                      <li>• Both parents must work</li>
                     </ul>
                   </div>
                   <div className="bg-white p-3 rounded-lg">
                     <p className="font-semibold text-hopscotch-fresh-air mb-1">All families</p>
                     <ul className="text-xs space-y-1">
-                      <li>• From age 3: <strong>15 hours</strong> free</li>
+                      <li>• From the term after your child turns 3: <strong>up to 15 hours</strong></li>
                       <li>• Available to everyone regardless of work status</li>
                     </ul>
                   </div>
                 </div>
                 <p className="text-xs">
-                  <strong>What does "stretched" mean?</strong> The 15/30 hours are for term-time (38 weeks). We spread them across the whole year (51 weeks) so you get a consistent number each week - that's 11 or 22 hours.
+                  At Hopscotch we provide the funded hours <strong>stretched</strong> — <strong>what does "stretched" mean?</strong> The 15/30 hours are for term-time (38 weeks only). We spread them across the whole year (51 weeks) so you get a consistent number each week — that's up to 11 or 22 hours.
                 </p>
                 <a
-                  href="https://www.childcarechoices.gov.uk"
+                  href="https://www.beststartinlife.gov.uk"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-hopscotch-fresh-air font-semibold hover:underline text-xs"
                 >
-                  Check your eligibility at childcarechoices.gov.uk
+                  Check your eligibility at beststartinlife.gov.uk
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -511,12 +519,12 @@ export default function FundingCalculator() {
                               <strong>Apply by {formatDate(milestone.applicationDeadline)}</strong> for {milestone.term} start
                             </p>
                             <a
-                              href="https://www.childcarechoices.gov.uk"
+                              href="https://www.beststartinlife.gov.uk"
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-hopscotch-fresh-air hover:underline inline-flex items-center gap-1 mt-1"
                             >
-                              Apply at childcarechoices.gov.uk
+                              Apply at beststartinlife.gov.uk
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
@@ -525,7 +533,7 @@ export default function FundingCalculator() {
                         )}
                         {milestone.isCurrent && (
                           <p className="mt-2 text-xs text-hopscotch-forest/60">
-                            Remember to reconfirm your code every 3 months at childcarechoices.gov.uk
+                            Remember to reconfirm your code every 3 months at beststartinlife.gov.uk
                           </p>
                         )}
                       </div>
@@ -744,7 +752,7 @@ export default function FundingCalculator() {
                     </span>
                     <h2 className="font-display text-xl text-hopscotch-forest">
                       Your Work Status
-                      <InfoTooltip text="Working families can get more funded hours from when their child is 9 months old. You'll need to apply for a code at childcarechoices.gov.uk" />
+                      <InfoTooltip text="Working families can get more funded hours from the term after their child turns 9 months. You'll need to apply for a code at beststartinlife.gov.uk" />
                     </h2>
                   </div>
                   <div className="space-y-3">
@@ -761,7 +769,7 @@ export default function FundingCalculator() {
                       />
                       <div>
                         <span className="font-semibold text-hopscotch-forest">Both parents are working</span>
-                        <p className="text-sm text-hopscotch-forest/60">Each parent earns at least £167/week (about 16hrs at minimum wage) and under £100k/year. Includes self-employed.</p>
+                        <p className="text-sm text-hopscotch-forest/60">Both parents must work (income under £100k/year each). Includes self-employed.</p>
                       </div>
                     </label>
                     <label
@@ -777,7 +785,7 @@ export default function FundingCalculator() {
                       />
                       <div>
                         <span className="font-semibold text-hopscotch-forest">One or both parents not working</span>
-                        <p className="text-sm text-hopscotch-forest/60">You can still get 15 free hours when your child turns 3</p>
+                        <p className="text-sm text-hopscotch-forest/60">You can still get 15 free hours from the term after your child turns 3</p>
                       </div>
                     </label>
                     <label
@@ -802,12 +810,12 @@ export default function FundingCalculator() {
                     <div className="mt-4 p-4 bg-hopscotch-fresh-air/10 rounded-xl">
                       <p className="text-hopscotch-forest/80 mb-2">Check your eligibility on the government website:</p>
                       <a
-                        href="https://www.childcarechoices.gov.uk"
+                        href="https://www.beststartinlife.gov.uk"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-hopscotch-fresh-air hover:text-hopscotch-fresh-air/80 font-semibold"
                       >
-                        childcarechoices.gov.uk
+                        beststartinlife.gov.uk
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
@@ -824,20 +832,20 @@ export default function FundingCalculator() {
                   )}
                 </section>
 
-                {/* Enrichment Fee - only shown when funding is eligible */}
-                {funding.eligible && (
+                {/* Enrichment Fee - shown when funding is eligible now or coming soon */}
+                {(funding.eligible || funding.futureEligibility) && (
                   <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                     <div className="flex items-center gap-3 mb-4">
                       <span className="w-8 h-8 bg-hopscotch-sunshine rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm">
                         {showBookingTypeChoice ? (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '6' : '5') : (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing' ? '5' : '4')}
                       </span>
                       <h2 className="font-display text-xl text-hopscotch-forest">
-                        Consumables Package
-                        <InfoTooltip text="Government funding doesn't cover consumables like nappies and snacks. Most parents choose our package for convenience, but you can bring your own if you prefer." />
+                        Consumables & Enrichment
+                        <InfoTooltip text="Government funding doesn't cover consumables or enrichment activities. Our package covers nappies, wipes, snacks and all the arts, crafts and activities your child enjoys each day. Most parents choose it for convenience, but you can bring your own if you prefer." />
                       </h2>
                     </div>
                     <p className="text-sm text-hopscotch-forest/70 mb-4">
-                      Would you like us to provide nappies, wipes, snacks and other daily essentials?
+                      Would you like us to provide nappies, wipes, snacks and enrichment activities (arts, crafts, outings and more)?
                     </p>
                     <div className="space-y-3">
                       <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${includeEnrichment ? 'border-hopscotch-apple bg-hopscotch-apple/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
@@ -851,7 +859,7 @@ export default function FundingCalculator() {
                         />
                         <div>
                           <span className="font-semibold text-hopscotch-forest">Yes please (recommended)</span>
-                          <p className="text-sm text-hopscotch-forest/60">We provide nappies, wipes, nappy cream, sun cream, snacks & enrichment activities. Nothing to remember each day!</p>
+                          <p className="text-sm text-hopscotch-forest/60">We provide nappies, wipes, nappy cream, sun cream, snacks, and all enrichment activities (arts, crafts, outings and more). Nothing to remember each day!</p>
                         </div>
                       </label>
                       <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${!includeEnrichment ? 'border-hopscotch-marmalade bg-hopscotch-marmalade/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}>
@@ -995,7 +1003,7 @@ export default function FundingCalculator() {
                           </div>
                           {includeEnrichment && costs.breakdown.fundedHours > 0 && (
                             <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Enrichment</span>
+                              <span>Consumables & enrichment</span>
                               <span>{formatCurrency(costs.breakdown.enrichmentFee)}</span>
                             </div>
                           )}
@@ -1013,6 +1021,44 @@ export default function FundingCalculator() {
                         <div className="flex justify-between text-sm text-hopscotch-forest/70">
                           <span>Sessions</span>
                           <span className="font-semibold text-hopscotch-forest">{formatCurrency(costs.breakdown.sessions)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Projected funded cost for future-eligible children */}
+                    {futureCosts && funding.futureEligibility && (
+                      <div className="pb-4 border-b border-gray-100">
+                        <h4 className="font-semibold text-hopscotch-fresh-air mb-1 flex items-center gap-2 text-sm uppercase tracking-wide">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          From {formatDate(funding.futureEligibility.date)}
+                        </h4>
+                        <p className="text-xs text-hopscotch-forest/50 mb-2">Projected cost once funding starts ({funding.futureEligibility.type})</p>
+                        <div className="text-sm space-y-1">
+                          <div className="flex justify-between text-hopscotch-forest/70">
+                            <span>Funded: {futureCosts.breakdown.fundedHours} hrs</span>
+                            <span className="text-hopscotch-apple font-semibold">£0.00</span>
+                          </div>
+                          {includeEnrichment && futureCosts.breakdown.fundedHours > 0 && (
+                            <div className="flex justify-between text-hopscotch-forest/70">
+                              <span>Consumables & enrichment</span>
+                              <span>{formatCurrency(futureCosts.breakdown.enrichmentFee)}</span>
+                            </div>
+                          )}
+                          {futureCosts.breakdown.unfundedHours > 0 && (
+                            <div className="flex justify-between text-hopscotch-forest/70">
+                              <span>Additional: {futureCosts.breakdown.unfundedHours.toFixed(1)} hrs</span>
+                              <span>{formatCurrency(futureCosts.breakdown.unfundedCost)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between font-semibold text-hopscotch-forest pt-1 border-t border-dashed border-gray-100">
+                            <span>Total from {formatDate(funding.futureEligibility.date)}</span>
+                            <span className="text-hopscotch-fresh-air">{formatCurrency(futureCosts.total)}/wk</span>
+                          </div>
+                          {futureCosts.savings > 0 && (
+                            <p className="text-xs text-hopscotch-apple font-medium">Saves {formatCurrency(futureCosts.savings)}/week vs unfunded</p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1085,8 +1131,8 @@ export default function FundingCalculator() {
                       <div className="mt-3 p-4 bg-hopscotch-fresh-air/10 rounded-xl">
                         <p className="text-hopscotch-forest/80 text-sm">
                           Apply for your code at{' '}
-                          <a href="https://www.childcarechoices.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">
-                            childcarechoices.gov.uk
+                          <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">
+                            beststartinlife.gov.uk
                           </a>
                         </p>
                       </div>
@@ -1124,12 +1170,13 @@ export default function FundingCalculator() {
                       <ol className="text-sm text-hopscotch-forest/70 space-y-2">
                         <li className="flex gap-2">
                           <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">1</span>
-                          <span>Book a nursery visit to see our setting</span>
+                          <a href="https://www.hopscotch.uk.com/visit" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">Book a nursery visit</a>
+                          <span className="text-hopscotch-forest/70">to see our setting</span>
                         </li>
                         {funding.eligible && (
                           <li className="flex gap-2">
                             <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">2</span>
-                            <span>Apply for your funding code at <a href="https://www.childcarechoices.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air hover:underline">childcarechoices.gov.uk</a></span>
+                            <span>Apply for your funding code at <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air hover:underline">beststartinlife.gov.uk</a></span>
                           </li>
                         )}
                         <li className="flex gap-2">
@@ -1180,7 +1227,7 @@ export default function FundingCalculator() {
               <a href="https://www.hopscotch.uk.com" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
                 hopscotch.uk.com
               </a>
-              <a href="https://www.childcarechoices.gov.uk" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
+              <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
                 Check funding eligibility
               </a>
             </div>

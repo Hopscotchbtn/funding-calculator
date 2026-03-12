@@ -906,7 +906,7 @@ export default function FundingCalculator() {
                           let step = 4; // Base: DOB, Days/Sessions, Work Status
                           if (showBookingTypeChoice) step++; // Booking Type
                           if (hasAnyExtras && selectedDaysCount > 0 && bookingType === 'existing') step++; // Additional Options
-                          if (funding.eligible) step++; // Consumables Package
+                          if (funding.eligible || funding.futureEligibility) step++; // Consumables Package
                           return step;
                         })()}
                       </span>

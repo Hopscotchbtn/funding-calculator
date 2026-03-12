@@ -137,6 +137,19 @@ export function determineFundingEligibility(dob, isWorkingParent, referenceDate 
       };
     }
 
+    // Check future eligibility for 3-year-olds waiting for term start
+    if (threeYearStart && today < threeYearStart && age.years >= 3 && age.years < 5) {
+      return {
+        eligible: false,
+        hours: 0,
+        futureEligibility: {
+          date: threeYearStart,
+          hours: FUNDING.thirty,
+          type: '30-hour (from age 3)'
+        }
+      };
+    }
+
     // Check future eligibility for 9+ months waiting for term start
     if (nineMonthStart && today < nineMonthStart && age.totalMonths >= 9 && age.years < 2) {
       return {

@@ -1,4 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+
+const ALLOWED_PARENTS = [
+  'https://www.hopscotch.uk.com/',
+];
 import {
   calculateAge,
   determineFundingEligibility,
@@ -82,6 +86,28 @@ function WaveDecoration({ className = '' }) {
 }
 
 export default function FundingCalculator() {
+  // Detect if running inside an iframe
+  const isEmbedded = window !== window.parent;
+
+  // iframe resize messaging
+  useEffect(() => {
+    const parentOrigin = ALLOWED_PARENTS.find(origin =>
+      document.referrer.startsWith(origin)
+    );
+
+    if (!parentOrigin) return;
+
+    const observer = new ResizeObserver(() => {
+      window.parent.postMessage(
+        { type: 'resize', height: document.documentElement.scrollHeight },
+        parentOrigin
+      );
+    });
+
+    observer.observe(document.documentElement);
+    return () => observer.disconnect();
+  }, []);
+
   // Nursery selection
   const [selectedNurseryId, setSelectedNurseryId] = useState('brighton');
   const nursery = useMemo(() => getNursery(selectedNurseryId), [selectedNurseryId]);
@@ -341,22 +367,24 @@ export default function FundingCalculator() {
 
   return (
     <div className="min-h-screen bg-hopscotch-pebble font-body">
-      {/* Header */}
-      <header className="bg-hopscotch-fresh-air-light relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
-          <div className="flex flex-col items-center">
-            <HopscotchLogo size="lg" />
-            <p className="text-xs tracking-widest text-hopscotch-forest/60 mt-2 uppercase font-medium">Children's Nurseries</p>
-            <h1 className="font-display text-3xl md:text-4xl text-hopscotch-forest mt-4">
-              Nursery Fees & Funding
-            </h1>
-            <p className="text-hopscotch-forest/70 mt-2">
-              Calculate your weekly childcare costs
-            </p>
+      {/* Header — hidden when embedded in iframe */}
+      {!isEmbedded && (
+        <header className="bg-hopscotch-fresh-air-light relative overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
+            <div className="flex flex-col items-center">
+              <HopscotchLogo size="lg" />
+              <p className="text-xs tracking-widest text-hopscotch-forest/60 mt-2 uppercase font-medium">Children's Nurseries</p>
+              <h1 className="font-display text-3xl md:text-4xl text-hopscotch-forest mt-4">
+                Nursery Fees & Funding
+              </h1>
+              <p className="text-hopscotch-forest/70 mt-2">
+                Calculate your weekly childcare costs
+              </p>
+            </div>
           </div>
-        </div>
-        <WaveDecoration className="absolute bottom-0 left-0 w-full h-8 text-hopscotch-pebble" />
-      </header>
+          <WaveDecoration className="absolute bottom-0 left-0 w-full h-8 text-hopscotch-pebble" />
+        </header>
+      )}
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Intro explainer for new parents */}
@@ -1208,35 +1236,37 @@ export default function FundingCalculator() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-hopscotch-forest text-white mt-16 relative">
-        <WaveDecoration className="absolute -top-8 left-0 w-full h-8 text-hopscotch-forest rotate-180" />
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <HopscotchLogo size="sm" />
-              <div>
-                <p className="font-semibold">{nursery.name}</p>
-                <p className="text-white/60 text-sm">{nursery.phone}</p>
+      {/* Footer — hidden when embedded in iframe */}
+      {!isEmbedded && (
+        <footer className="bg-hopscotch-forest text-white mt-16 relative">
+          <WaveDecoration className="absolute -top-8 left-0 w-full h-8 text-hopscotch-forest rotate-180" />
+          <div className="max-w-6xl mx-auto px-4 py-12">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <HopscotchLogo size="sm" />
+                <div>
+                  <p className="font-semibold">{nursery.name}</p>
+                  <p className="text-white/60 text-sm">{nursery.phone}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-center gap-6 text-sm">
+                <a href={`mailto:${nursery.email}`} className="text-hopscotch-sunshine hover:text-white transition-colors">
+                  {nursery.email}
+                </a>
+                <a href="https://www.hopscotch.uk.com" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
+                  hopscotch.uk.com
+                </a>
+                <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
+                  Check funding eligibility
+                </a>
               </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-6 text-sm">
-              <a href={`mailto:${nursery.email}`} className="text-hopscotch-sunshine hover:text-white transition-colors">
-                {nursery.email}
-              </a>
-              <a href="https://www.hopscotch.uk.com" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
-                hopscotch.uk.com
-              </a>
-              <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors">
-                Check funding eligibility
-              </a>
+            <div className="mt-8 pt-6 border-t border-white/10 text-center text-white/40 text-xs">
+              © {new Date().getFullYear()} Hopscotch Children's Nurseries. All rights reserved.
             </div>
           </div>
-          <div className="mt-8 pt-6 border-t border-white/10 text-center text-white/40 text-xs">
-            © {new Date().getFullYear()} Hopscotch Children's Nurseries. All rights reserved.
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

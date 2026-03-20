@@ -470,13 +470,13 @@ export default function FundingCalculator() {
               <h2 className="font-display text-xl text-hopscotch-forest mb-4">
                 Select Your Nursery
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
                 {allNurseries.map(n => (
                   <button
                     key={n.id}
                     onClick={() => handleNurseryChange(n.id)}
                     className={`
-                      p-4 rounded-xl text-left transition-all border-2
+                      p-4 rounded-xl text-left transition-all border-2 h-full
                       ${selectedNurseryId === n.id
                         ? 'bg-hopscotch-apple/10 border-hopscotch-apple shadow-sm'
                         : 'bg-hopscotch-pebble/50 border-transparent hover:border-hopscotch-sunshine/50 hover:bg-white'

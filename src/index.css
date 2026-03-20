@@ -49,6 +49,11 @@ body {
 /* Custom styles for form elements */
 input[type="date"] {
   min-height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Prevent iOS from applying its own date input styling */
+  background-color: white;
+  font-size: 16px; /* Prevents iOS zoom on focus (must be >= 16px) */
 }
 
 /* Ensure touch targets are large enough on mobile */

@@ -2,7 +2,7 @@ import FundingCalculator from './components/FundingCalculator'
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       <FundingCalculator />
     </div>
   )

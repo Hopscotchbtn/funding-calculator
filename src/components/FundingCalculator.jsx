@@ -366,7 +366,7 @@ export default function FundingCalculator() {
   const hasAnyExtras = Object.keys(nursery.extras).length > 0;
 
   return (
-    <div className="min-h-screen bg-hopscotch-pebble font-body">
+    <div className="bg-hopscotch-pebble font-body">
       {/* Header — hidden when embedded in iframe */}
       {!isEmbedded && (
         <header className="bg-hopscotch-fresh-air-light relative overflow-hidden">
@@ -385,7 +385,6 @@ export default function FundingCalculator() {
           <WaveDecoration className="absolute bottom-0 left-0 w-full h-8 text-hopscotch-pebble" />
         </header>
       )}
-
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Intro explainer for new parents */}
         <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -1236,7 +1235,23 @@ export default function FundingCalculator() {
         </div>
       </main>
 
-      {/* Footer — hidden when embedded in iframe */}
+      {/* Book a Visit CTA - clean transition to parent site footer when embedded */}
+      {isEmbedded && (
+        <div className="bg-hopscotch-forest py-10">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <a
+              href="https://www.hopscotch.uk.com/visit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-10 py-4 bg-white text-hopscotch-forest font-semibold rounded-full text-lg hover:bg-hopscotch-pebble transition-colors shadow-sm"
+            >
+              Book a visit
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Footer — shown only in standalone mode */}
       {!isEmbedded && (
         <footer className="bg-hopscotch-forest text-white mt-16 relative">
           <WaveDecoration className="absolute -top-8 left-0 w-full h-8 text-hopscotch-forest rotate-180" />

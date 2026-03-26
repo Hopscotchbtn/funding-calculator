@@ -56,6 +56,25 @@ input[type="date"] {
   font-size: 16px; /* Prevents iOS zoom on focus (must be >= 16px) */
 }
 
+/* Fix Mobile Safari doubling x-axis padding on date inputs */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Cross-browser select styling */
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231f4435' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+}
+
 /* Ensure touch targets are large enough on mobile */
 @media (max-width: 640px) {
   input[type="checkbox"],

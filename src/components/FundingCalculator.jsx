@@ -967,7 +967,7 @@ export default function FundingCalculator() {
           {/* Results Panel */}
           <div id="results" className="lg:col-span-2 mt-8 lg:mt-0">
             <div className="lg:sticky lg:top-8">
-              <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-hopscotch-sunshine/30 relative overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-hopscotch-sunshine/30 relative overflow-clip">
                 {/* Decorative corner */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-hopscotch-sunshine/10 rounded-bl-full"></div>
 

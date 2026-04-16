@@ -939,6 +939,14 @@ export default function FundingCalculator() {
                       </span>
                       <h2 className="font-display text-xl text-hopscotch-forest">Meals</h2>
                     </div>
+                    <div className="mb-4 p-3 bg-hopscotch-apple/10 border border-hopscotch-apple/30 rounded-xl flex items-start gap-2">
+                      <svg className="w-5 h-5 text-hopscotch-apple flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-sm text-hopscotch-forest/80">
+                        <strong className="text-hopscotch-apple">Breakfast is included</strong> in your session fees — no need to add it separately.
+                      </p>
+                    </div>
                     <div className="space-y-3">
                       {Object.entries(nursery.meals).map(([mealKey, mealConfig]) => (
                         <label
@@ -982,7 +990,7 @@ export default function FundingCalculator() {
                       </svg>
                     </div>
                     <p className="text-hopscotch-forest/70 font-medium">Let's get started!</p>
-                    <p className="text-hopscotch-forest/50 text-sm mt-1">Enter your child's date of birth above</p>
+                    <p className="text-hopscotch-forest/50 text-sm mt-1">Enter your child's date of birth to begin</p>
                   </div>
                 ) : isChildOverFive ? (
                   <div className="py-8 text-center">
@@ -1197,7 +1205,7 @@ export default function FundingCalculator() {
                       <ol className="text-sm text-hopscotch-forest/70 space-y-2">
                         <li className="flex gap-2">
                           <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">1</span>
-                          <a href="https://www.hopscotch.uk.com/visit" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">Book a nursery visit</a>
+                          <a href="https://www.hopscotch.uk.com/#book-a-visit" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">Book a nursery visit</a>
                           <span className="text-hopscotch-forest/70">to see our setting</span>
                         </li>
                         {funding.eligible && (
@@ -1240,7 +1248,7 @@ export default function FundingCalculator() {
         <div className="bg-hopscotch-forest py-10">
           <div className="max-w-6xl mx-auto px-4 text-center">
             <a
-              href="https://www.hopscotch.uk.com/visit"
+              href="https://www.hopscotch.uk.com/#book-a-visit"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-10 py-4 bg-white text-hopscotch-forest font-semibold rounded-full text-lg hover:bg-hopscotch-pebble transition-colors shadow-sm"

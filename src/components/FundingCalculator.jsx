@@ -161,6 +161,17 @@ export default function FundingCalculator() {
     return calculateFundedCost(days, nursery, funding.futureEligibility.hours, includeEnrichment, meals);
   }, [days, nursery, funding, includeEnrichment, meals, selectedDaysCount]);
 
+  // Child isn't funded yet but will be (e.g. universal 15 hours starting the term
+  // after they turn 3). For these families the future/funded figure is the one that
+  // matters, so the results panel leads with it rather than today's unfunded price.
+  const isFutureEligible = !funding.eligible && !!funding.futureEligibility && !!futureCosts;
+
+  // Universal 15-hour funding (all 3-4 year olds) is automatic — there's no code to
+  // apply for or reconfirm. Only the working-parent / extended entitlements need a
+  // code from beststartinlife.gov.uk. Used to avoid telling universal families to apply.
+  const activeFundingType = funding.eligible ? funding.type : funding.futureEligibility?.type;
+  const needsFundingCode = !!activeFundingType && !activeFundingType.toLowerCase().includes('universal');
+
   // Handle day selection for new bookings
   const handleNewBookingDayToggle = (day) => {
     setDays(prev => ({
@@ -213,6 +224,10 @@ export default function FundingCalculator() {
   const generateEmailSummary = () => {
     if (!costs) return { subject: '', body: '' };
 
+    // For funded-from-a-future-date children, lead the summary with the funded
+    // figures (what they'll actually pay) rather than today's unfunded price.
+    const primary = isFutureEligible ? futureCosts : costs;
+
     const selectedDayNames = DAYS
       .filter(day => days[day].session !== 'none')
       .map(day => day.charAt(0).toUpperCase() + day.slice(1))
@@ -253,71 +268,82 @@ export default function FundingCalculator() {
     body += `-`.repeat(30) + `\n`;
     if (funding.eligible) {
       body += `Status: Eligible for ${funding.type}\n`;
-      body += `Funded hours: ${costs.breakdown.fundedHours} hours\n`;
-      if (costs.breakdown.unfundedHours > 0) {
-        body += `Additional hours: ${costs.breakdown.unfundedHours.toFixed(1)} hours\n`;
+      body += `Funded hours: ${primary.breakdown.fundedHours} hours\n`;
+      if (primary.breakdown.unfundedHours > 0) {
+        body += `Additional hours: ${primary.breakdown.unfundedHours.toFixed(1)} hours\n`;
+      }
+    } else if (isFutureEligible) {
+      body += `Status: Funded from ${formatDate(funding.futureEligibility.date)} (${funding.futureEligibility.type})\n`;
+      body += `Funded hours: ${primary.breakdown.fundedHours} hours\n`;
+      if (primary.breakdown.unfundedHours > 0) {
+        body += `Additional hours: ${primary.breakdown.unfundedHours.toFixed(1)} hours\n`;
       }
     } else {
       body += `Status: No funding applied\n`;
-      if (funding.futureEligibility) {
-        body += `Future eligibility: ${formatDate(funding.futureEligibility.date)}\n`;
-      }
     }
     body += `\n`;
 
     // Cost breakdown
     body += `COST BREAKDOWN\n`;
     body += `-`.repeat(30) + `\n`;
-    if (funding.eligible) {
+    if (funding.eligible || isFutureEligible) {
       body += `Funded hours: £0.00\n`;
-      if (includeEnrichment && costs.breakdown.fundedHours > 0) {
-        body += `Enrichment fee: ${formatCurrency(costs.breakdown.enrichmentFee)}\n`;
+      if (includeEnrichment && primary.breakdown.fundedHours > 0) {
+        body += `Enrichment fee: ${formatCurrency(primary.breakdown.enrichmentFee)}\n`;
       }
-      if (costs.breakdown.unfundedHours > 0) {
-        body += `Additional hours: ${formatCurrency(costs.breakdown.unfundedCost)}\n`;
+      if (primary.breakdown.unfundedHours > 0) {
+        body += `Additional hours: ${formatCurrency(primary.breakdown.unfundedCost)}\n`;
       }
     } else {
-      body += `Session fees: ${formatCurrency(costs.breakdown.sessions)}\n`;
+      body += `Session fees: ${formatCurrency(primary.breakdown.sessions)}\n`;
     }
 
-    if (costs.counts.earlyStartDays > 0 && nursery.extras.earlyStart) {
-      body += `Early start (${costs.counts.earlyStartDays}x): ${formatCurrency(costs.breakdown.earlyStart)}\n`;
+    if (primary.counts.earlyStartDays > 0 && nursery.extras.earlyStart) {
+      body += `Early start (${primary.counts.earlyStartDays}x): ${formatCurrency(primary.breakdown.earlyStart)}\n`;
     }
-    if (costs.counts.lateFinishDays > 0 && nursery.extras.lateFinish) {
-      body += `Late finish (${costs.counts.lateFinishDays}x): ${formatCurrency(costs.breakdown.lateFinish)}\n`;
+    if (primary.counts.lateFinishDays > 0 && nursery.extras.lateFinish) {
+      body += `Late finish (${primary.counts.lateFinishDays}x): ${formatCurrency(primary.breakdown.lateFinish)}\n`;
     }
-    if (costs.counts.lunchHourDays > 0 && nursery.extras.lunchHour) {
-      body += `Lunch hour (${costs.counts.lunchHourDays}x): ${formatCurrency(costs.breakdown.lunchHour)}\n`;
+    if (primary.counts.lunchHourDays > 0 && nursery.extras.lunchHour) {
+      body += `Lunch hour (${primary.counts.lunchHourDays}x): ${formatCurrency(primary.breakdown.lunchHour)}\n`;
     }
 
-    Object.entries(costs.breakdown.meals).forEach(([mealKey, mealTotal]) => {
+    Object.entries(primary.breakdown.meals).forEach(([mealKey, mealTotal]) => {
       const mealConfig = nursery.meals[mealKey];
       if (mealConfig && mealTotal > 0) {
-        body += `${mealConfig.name} (${costs.counts.sessionDays}x): ${formatCurrency(mealTotal)}\n`;
+        body += `${mealConfig.name} (${primary.counts.sessionDays}x): ${formatCurrency(mealTotal)}\n`;
       }
     });
 
     body += `\n`;
     body += `${'='.repeat(30)}\n`;
-    body += `TOTAL: ${formatCurrency(costs.total)} per week\n`;
-    body += `Monthly estimate: ${formatCurrency(costs.total * 4.33)}\n`;
+    body += `TOTAL: ${formatCurrency(primary.total)} per week${isFutureEligible ? ` (from ${formatDate(funding.futureEligibility.date)}, all in)` : ''}\n`;
+    body += `Monthly estimate: ${formatCurrency(primary.total * 4.33)}\n`;
     body += `${'='.repeat(30)}\n`;
 
-    if (funding.eligible && costs.savings > 0) {
-      body += `\nSavings with funding: ${formatCurrency(costs.savings)} per week\n`;
+    if (isFutureEligible) {
+      body += `\nBefore ${formatDate(funding.futureEligibility.date)} (standard rate, no funding yet): ${formatCurrency(costs.total)} per week\n`;
+    }
+
+    if ((funding.eligible || isFutureEligible) && primary.savings > 0) {
+      body += `\nSavings with funding: ${formatCurrency(primary.savings)} per week\n`;
     }
 
     body += `\n\nNOTES\n`;
     body += `-`.repeat(30) + `\n`;
     body += `• This is an estimate - final fees confirmed at booking\n`;
     body += `• Prices valid from April 2026\n`;
-    if (funding.eligible) {
-      body += `• Apply for your funding code at beststartinlife.gov.uk\n`;
+    if (funding.eligible || isFutureEligible) {
+      if (needsFundingCode) {
+        body += `• Apply for your funding code at beststartinlife.gov.uk\n`;
+      } else {
+        body += `• Universal funding is automatic - no code needed, just let us know\n`;
+      }
     }
     body += `\n\nContact: ${nursery.email} | ${nursery.phone}\n`;
     body += `Visit: hopscotch.uk.com\n`;
 
-    const subject = `Hopscotch ${nursery.name} - Fees Estimate (${formatCurrency(costs.total)}/week)`;
+    const subject = `Hopscotch ${nursery.name} - Fees Estimate (${formatCurrency(primary.total)}/week${isFutureEligible ? ` from ${formatDate(funding.futureEligibility.date)}` : ''})`;
 
     return { subject, body };
   };
@@ -452,8 +478,14 @@ export default function FundingCalculator() {
           <div className="lg:hidden mb-6 p-4 bg-hopscotch-apple/10 border border-hopscotch-apple/30 rounded-xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-hopscotch-forest/70">Estimated weekly cost</p>
-                <p className="text-2xl font-bold text-hopscotch-apple">{formatCurrency(costs.total)}</p>
+                <p className="text-sm text-hopscotch-forest/70">
+                  {isFutureEligible
+                    ? `Weekly cost from ${formatDate(funding.futureEligibility.date)}`
+                    : 'Estimated weekly cost'}
+                </p>
+                <p className="text-2xl font-bold text-hopscotch-apple">
+                  {formatCurrency(isFutureEligible ? futureCosts.total : costs.total)}
+                </p>
               </div>
               <a href="#results" className="text-sm text-hopscotch-fresh-air font-semibold hover:underline">
                 See full breakdown →
@@ -540,7 +572,7 @@ export default function FundingCalculator() {
                             </p>
                           </div>
                         </div>
-                        {!milestone.isPast && milestone.applicationDeadline && (
+                        {!milestone.isPast && milestone.applicationDeadline && !milestone.type?.toLowerCase().includes('universal') && (
                           <div className="mt-2 p-2 bg-hopscotch-sunshine/20 rounded-lg">
                             <p className="text-sm text-hopscotch-forest">
                               <strong>Apply by {formatDate(milestone.applicationDeadline)}</strong> for {milestone.term} start
@@ -558,7 +590,12 @@ export default function FundingCalculator() {
                             </a>
                           </div>
                         )}
-                        {milestone.isCurrent && (
+                        {!milestone.isPast && milestone.type?.toLowerCase().includes('universal') && (
+                          <p className="mt-2 text-xs text-hopscotch-forest/60">
+                            Universal funding is automatic — no code to apply for. Just let us know when you'd like it to start.
+                          </p>
+                        )}
+                        {milestone.isCurrent && !milestone.type?.toLowerCase().includes('universal') && (
                           <p className="mt-2 text-xs text-hopscotch-forest/60">
                             Remember to reconfirm your code every 3 months at beststartinlife.gov.uk
                           </p>
@@ -1021,133 +1058,195 @@ export default function FundingCalculator() {
                       </div>
                     </div>
 
-                    {/* Funding Section */}
-                    {funding.eligible ? (
-                      <div className="pb-4 border-b border-gray-100">
-                        <h4 className="font-semibold text-hopscotch-apple mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          Funding applied
-                        </h4>
-                        <p className="text-xs text-hopscotch-forest/60 mb-2">{funding.type}</p>
-                        <div className="text-sm space-y-1">
-                          <div className="flex justify-between text-hopscotch-forest/70">
-                            <span>Funded: {costs.breakdown.fundedHours} hrs</span>
-                            <span className="text-hopscotch-apple font-semibold">£0.00</span>
-                          </div>
-                          {includeEnrichment && costs.breakdown.fundedHours > 0 && (
+                    {isFutureEligible ? (
+                      /* Funded-from-a-future-date families (e.g. universal 15 hrs from the
+                         term after age 3). Lead with the funded weekly fee they'll actually
+                         pay — all-in, meals included — and keep today's pre-funding price as
+                         a clearly-labelled secondary note. */
+                      <>
+                        <div className="pb-4 border-b border-gray-100">
+                          <h4 className="font-semibold text-hopscotch-forest mb-1 flex items-center gap-2 text-sm uppercase tracking-wide">
+                            <svg className="w-5 h-5 text-hopscotch-apple" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Your weekly fee from {formatDate(funding.futureEligibility.date)}
+                          </h4>
+                          <p className="text-xs text-hopscotch-forest/60 mb-3">
+                            Once your funding starts ({funding.futureEligibility.type}). This is the all-in weekly fee, including meals.
+                          </p>
+                          <div className="text-sm space-y-1">
                             <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Consumables & enrichment</span>
-                              <span>{formatCurrency(costs.breakdown.enrichmentFee)}</span>
+                              <span>Funded: {futureCosts.breakdown.fundedHours} hrs</span>
+                              <span className="text-hopscotch-apple font-semibold">£0.00</span>
                             </div>
-                          )}
-                          {costs.breakdown.unfundedHours > 0 && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Additional: {costs.breakdown.unfundedHours.toFixed(1)} hrs</span>
-                              <span>{formatCurrency(costs.breakdown.unfundedCost)}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="pb-4 border-b border-gray-100">
-                        <h4 className="font-semibold text-hopscotch-forest/80 mb-2 text-sm uppercase tracking-wide">Session fees</h4>
-                        <div className="flex justify-between text-sm text-hopscotch-forest/70">
-                          <span>Sessions</span>
-                          <span className="font-semibold text-hopscotch-forest">{formatCurrency(costs.breakdown.sessions)}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Projected funded cost for future-eligible children */}
-                    {futureCosts && funding.futureEligibility && (
-                      <div className="pb-4 border-b border-gray-100">
-                        <h4 className="font-semibold text-hopscotch-fresh-air mb-1 flex items-center gap-2 text-sm uppercase tracking-wide">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          From {formatDate(funding.futureEligibility.date)}
-                        </h4>
-                        <p className="text-xs text-hopscotch-forest/50 mb-2">Projected cost once funding starts ({funding.futureEligibility.type})</p>
-                        <div className="text-sm space-y-1">
-                          <div className="flex justify-between text-hopscotch-forest/70">
-                            <span>Funded: {futureCosts.breakdown.fundedHours} hrs</span>
-                            <span className="text-hopscotch-apple font-semibold">£0.00</span>
-                          </div>
-                          {includeEnrichment && futureCosts.breakdown.fundedHours > 0 && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Consumables & enrichment</span>
-                              <span>{formatCurrency(futureCosts.breakdown.enrichmentFee)}</span>
-                            </div>
-                          )}
-                          {futureCosts.breakdown.unfundedHours > 0 && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Additional: {futureCosts.breakdown.unfundedHours.toFixed(1)} hrs</span>
-                              <span>{formatCurrency(futureCosts.breakdown.unfundedCost)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between font-semibold text-hopscotch-forest pt-1 border-t border-dashed border-gray-100">
-                            <span>Total from {formatDate(funding.futureEligibility.date)}</span>
-                            <span className="text-hopscotch-fresh-air">{formatCurrency(futureCosts.total)}/wk</span>
-                          </div>
-                          {futureCosts.savings > 0 && (
-                            <p className="text-xs text-hopscotch-apple font-medium">Saves {formatCurrency(futureCosts.savings)}/week vs unfunded</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Extras */}
-                    {(costs.counts.earlyStartDays > 0 || costs.counts.lateFinishDays > 0 ||
-                      costs.counts.lunchHourDays > 0 || Object.keys(costs.breakdown.meals).length > 0) && (
-                      <div className="pb-4 border-b border-gray-100">
-                        <h4 className="font-semibold text-hopscotch-forest/80 mb-2 text-sm uppercase tracking-wide">Extras</h4>
-                        <div className="text-sm space-y-1">
-                          {costs.counts.earlyStartDays > 0 && nursery.extras.earlyStart && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Early start ({costs.counts.earlyStartDays}x)</span>
-                              <span>{formatCurrency(costs.breakdown.earlyStart)}</span>
-                            </div>
-                          )}
-                          {costs.counts.lateFinishDays > 0 && nursery.extras.lateFinish && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Late finish ({costs.counts.lateFinishDays}x)</span>
-                              <span>{formatCurrency(costs.breakdown.lateFinish)}</span>
-                            </div>
-                          )}
-                          {costs.counts.lunchHourDays > 0 && nursery.extras.lunchHour && (
-                            <div className="flex justify-between text-hopscotch-forest/70">
-                              <span>Lunch hour ({costs.counts.lunchHourDays}x)</span>
-                              <span>{formatCurrency(costs.breakdown.lunchHour)}</span>
-                            </div>
-                          )}
-                          {Object.entries(costs.breakdown.meals).map(([mealKey, mealTotal]) => {
-                            const mealConfig = nursery.meals[mealKey];
-                            if (!mealConfig || mealTotal === 0) return null;
-                            return (
-                              <div key={mealKey} className="flex justify-between text-hopscotch-forest/70">
-                                <span>{mealConfig.name} ({costs.counts.sessionDays}x)</span>
-                                <span>{formatCurrency(mealTotal)}</span>
+                            {includeEnrichment && futureCosts.breakdown.fundedHours > 0 && (
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Consumables & enrichment</span>
+                                <span>{formatCurrency(futureCosts.breakdown.enrichmentFee)}</span>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                            )}
+                            {futureCosts.breakdown.unfundedHours > 0 && (
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Additional: {futureCosts.breakdown.unfundedHours.toFixed(1)} hrs</span>
+                                <span>{formatCurrency(futureCosts.breakdown.unfundedCost)}</span>
+                              </div>
+                            )}
+                            {futureCosts.counts.earlyStartDays > 0 && nursery.extras.earlyStart && (
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Early start ({futureCosts.counts.earlyStartDays}x)</span>
+                                <span>{formatCurrency(futureCosts.breakdown.earlyStart)}</span>
+                              </div>
+                            )}
+                            {futureCosts.counts.lateFinishDays > 0 && nursery.extras.lateFinish && (
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Late finish ({futureCosts.counts.lateFinishDays}x)</span>
+                                <span>{formatCurrency(futureCosts.breakdown.lateFinish)}</span>
+                              </div>
+                            )}
+                            {futureCosts.counts.lunchHourDays > 0 && nursery.extras.lunchHour && (
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Lunch hour ({futureCosts.counts.lunchHourDays}x)</span>
+                                <span>{formatCurrency(futureCosts.breakdown.lunchHour)}</span>
+                              </div>
+                            )}
+                            {Object.entries(futureCosts.breakdown.meals).map(([mealKey, mealTotal]) => {
+                              const mealConfig = nursery.meals[mealKey];
+                              if (!mealConfig || mealTotal === 0) return null;
+                              return (
+                                <div key={mealKey} className="flex justify-between text-hopscotch-forest/70">
+                                  <span>{mealConfig.name} ({futureCosts.counts.sessionDays}x)</span>
+                                  <span>{formatCurrency(mealTotal)}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
 
-                    {/* Total */}
-                    <div className="pt-2">
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-lg font-semibold text-hopscotch-forest">TOTAL</span>
-                        <span className="text-3xl font-bold text-hopscotch-apple">{formatCurrency(costs.total)}</span>
-                      </div>
-                      <p className="text-right text-sm text-hopscotch-forest/50">per week</p>
-                      <div className="flex justify-between items-center text-sm text-hopscotch-forest/60 mt-3 pt-3 border-t border-dashed border-gray-200">
-                        <span>Monthly estimate</span>
-                        <span className="font-semibold">{formatCurrency(costs.total * 4.33)}</span>
-                      </div>
-                    </div>
+                          {/* Hero total — the figure that matters to this family */}
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex justify-between items-baseline">
+                              <span className="text-lg font-semibold text-hopscotch-forest">TOTAL</span>
+                              <span className="text-3xl font-bold text-hopscotch-apple">{formatCurrency(futureCosts.total)}</span>
+                            </div>
+                            <p className="text-right text-sm text-hopscotch-forest/50">per week, all in</p>
+                            <div className="flex justify-between items-center text-sm text-hopscotch-forest/60 mt-3 pt-3 border-t border-dashed border-gray-200">
+                              <span>Monthly estimate</span>
+                              <span className="font-semibold">{formatCurrency(futureCosts.total * 4.33)}</span>
+                            </div>
+                          </div>
+
+                          {futureCosts.savings > 0 && (
+                            <p className="mt-3 text-sm text-hopscotch-apple font-semibold">
+                              Saves {formatCurrency(futureCosts.savings)}/week compared with paying without funding
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Secondary: today's rate, before funding starts */}
+                        <div className="pt-1">
+                          <div className="p-3 bg-hopscotch-pebble/60 rounded-xl">
+                            <p className="text-xs text-hopscotch-forest/60 mb-1">
+                              Before {formatDate(funding.futureEligibility.date)} (if you start before funding begins)
+                            </p>
+                            <div className="flex justify-between items-baseline">
+                              <span className="text-sm text-hopscotch-forest/70">Standard rate, no funding</span>
+                              <span className="text-lg font-semibold text-hopscotch-forest/80">{formatCurrency(costs.total)}/wk</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Funding Section */}
+                        {funding.eligible ? (
+                          <div className="pb-4 border-b border-gray-100">
+                            <h4 className="font-semibold text-hopscotch-apple mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Funding applied
+                            </h4>
+                            <p className="text-xs text-hopscotch-forest/60 mb-2">{funding.type}</p>
+                            <div className="text-sm space-y-1">
+                              <div className="flex justify-between text-hopscotch-forest/70">
+                                <span>Funded: {costs.breakdown.fundedHours} hrs</span>
+                                <span className="text-hopscotch-apple font-semibold">£0.00</span>
+                              </div>
+                              {includeEnrichment && costs.breakdown.fundedHours > 0 && (
+                                <div className="flex justify-between text-hopscotch-forest/70">
+                                  <span>Consumables & enrichment</span>
+                                  <span>{formatCurrency(costs.breakdown.enrichmentFee)}</span>
+                                </div>
+                              )}
+                              {costs.breakdown.unfundedHours > 0 && (
+                                <div className="flex justify-between text-hopscotch-forest/70">
+                                  <span>Additional: {costs.breakdown.unfundedHours.toFixed(1)} hrs</span>
+                                  <span>{formatCurrency(costs.breakdown.unfundedCost)}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="pb-4 border-b border-gray-100">
+                            <h4 className="font-semibold text-hopscotch-forest/80 mb-2 text-sm uppercase tracking-wide">Session fees</h4>
+                            <div className="flex justify-between text-sm text-hopscotch-forest/70">
+                              <span>Sessions</span>
+                              <span className="font-semibold text-hopscotch-forest">{formatCurrency(costs.breakdown.sessions)}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Extras */}
+                        {(costs.counts.earlyStartDays > 0 || costs.counts.lateFinishDays > 0 ||
+                          costs.counts.lunchHourDays > 0 || Object.keys(costs.breakdown.meals).length > 0) && (
+                          <div className="pb-4 border-b border-gray-100">
+                            <h4 className="font-semibold text-hopscotch-forest/80 mb-2 text-sm uppercase tracking-wide">Extras</h4>
+                            <div className="text-sm space-y-1">
+                              {costs.counts.earlyStartDays > 0 && nursery.extras.earlyStart && (
+                                <div className="flex justify-between text-hopscotch-forest/70">
+                                  <span>Early start ({costs.counts.earlyStartDays}x)</span>
+                                  <span>{formatCurrency(costs.breakdown.earlyStart)}</span>
+                                </div>
+                              )}
+                              {costs.counts.lateFinishDays > 0 && nursery.extras.lateFinish && (
+                                <div className="flex justify-between text-hopscotch-forest/70">
+                                  <span>Late finish ({costs.counts.lateFinishDays}x)</span>
+                                  <span>{formatCurrency(costs.breakdown.lateFinish)}</span>
+                                </div>
+                              )}
+                              {costs.counts.lunchHourDays > 0 && nursery.extras.lunchHour && (
+                                <div className="flex justify-between text-hopscotch-forest/70">
+                                  <span>Lunch hour ({costs.counts.lunchHourDays}x)</span>
+                                  <span>{formatCurrency(costs.breakdown.lunchHour)}</span>
+                                </div>
+                              )}
+                              {Object.entries(costs.breakdown.meals).map(([mealKey, mealTotal]) => {
+                                const mealConfig = nursery.meals[mealKey];
+                                if (!mealConfig || mealTotal === 0) return null;
+                                return (
+                                  <div key={mealKey} className="flex justify-between text-hopscotch-forest/70">
+                                    <span>{mealConfig.name} ({costs.counts.sessionDays}x)</span>
+                                    <span>{formatCurrency(mealTotal)}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Total */}
+                        <div className="pt-2">
+                          <div className="flex justify-between items-baseline">
+                            <span className="text-lg font-semibold text-hopscotch-forest">TOTAL</span>
+                            <span className="text-3xl font-bold text-hopscotch-apple">{formatCurrency(costs.total)}</span>
+                          </div>
+                          <p className="text-right text-sm text-hopscotch-forest/50">per week</p>
+                          <div className="flex justify-between items-center text-sm text-hopscotch-forest/60 mt-3 pt-3 border-t border-dashed border-gray-200">
+                            <span>Monthly estimate</span>
+                            <span className="font-semibold">{formatCurrency(costs.total * 4.33)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Savings message */}
                     {funding.eligible && costs.savings > 0 && (
@@ -1164,12 +1263,18 @@ export default function FundingCalculator() {
                     {/* Funding reminder */}
                     {funding.eligible && (
                       <div className="mt-3 p-4 bg-hopscotch-fresh-air/10 rounded-xl">
-                        <p className="text-hopscotch-forest/80 text-sm">
-                          Apply for your code at{' '}
-                          <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">
-                            beststartinlife.gov.uk
-                          </a>
-                        </p>
+                        {needsFundingCode ? (
+                          <p className="text-hopscotch-forest/80 text-sm">
+                            Apply for your code at{' '}
+                            <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">
+                              beststartinlife.gov.uk
+                            </a>
+                          </p>
+                        ) : (
+                          <p className="text-hopscotch-forest/80 text-sm">
+                            Your universal funding is automatic — no code needed. Just let us know and we'll apply it to your account.
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -1208,14 +1313,14 @@ export default function FundingCalculator() {
                           <a href="https://www.hopscotch.uk.com/#book-a-visit" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air font-semibold hover:underline">Book a nursery visit</a>
                           <span className="text-hopscotch-forest/70">to see our setting</span>
                         </li>
-                        {funding.eligible && (
+                        {funding.eligible && needsFundingCode && (
                           <li className="flex gap-2">
                             <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">2</span>
                             <span>Apply for your funding code at <a href="https://www.beststartinlife.gov.uk" target="_blank" rel="noopener noreferrer" className="text-hopscotch-fresh-air hover:underline">beststartinlife.gov.uk</a></span>
                           </li>
                         )}
                         <li className="flex gap-2">
-                          <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">{funding.eligible ? '3' : '2'}</span>
+                          <span className="w-5 h-5 bg-hopscotch-sunshine/30 rounded-full flex items-center justify-center text-xs font-bold text-hopscotch-sunshine flex-shrink-0">{funding.eligible && needsFundingCode ? '3' : '2'}</span>
                           <span>Confirm your booking with us</span>
                         </li>
                       </ol>

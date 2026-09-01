@@ -1,3 +1,6 @@
+// Meal price increase effective 7 September 2026 (shown as "from 7 September" until this date passes)
+const MEAL_PRICE_INCREASE_DATE = new Date(2026, 8, 7);
+
 // Nursery-specific configurations
 export const NURSERIES = {
   'brighton': {
@@ -17,8 +20,8 @@ export const NURSERIES = {
       lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
-      hotLunch: { name: 'Hot lunch', fee: 4.16 },
-      hotTea: { name: 'Hot tea', fee: 4.16 },
+      hotLunch: { name: 'Hot lunch', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
+      hotTea: { name: 'Hot tea', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
     },
     funding: {
       enrichmentPerHour: 1.50,
@@ -44,7 +47,7 @@ export const NURSERIES = {
       lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
-      hotLunch: { name: 'Hot lunch', fee: 4.16 },
+      hotLunch: { name: 'Hot lunch', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
     },
     funding: {
       enrichmentPerHour: 1.50,
@@ -69,8 +72,8 @@ export const NURSERIES = {
       earlyStart: { name: 'Early start', time: '7:30am - 8am', fee: 9.40 },
     },
     meals: {
-      hotLunch: { name: 'Hot lunch', fee: 4.16 },
-      coldTea: { name: 'Cold tea', fee: 2.75 },
+      hotLunch: { name: 'Hot lunch', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
+      coldTea: { name: 'Cold tea', fee: 2.92, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
     },
     funding: {
       enrichmentPerHour: 1.25,
@@ -98,8 +101,8 @@ export const NURSERIES = {
       lunchHour: { name: 'Lunch hour', time: '12:30pm - 1:30pm', hours: 1, fee: 9.40, requiresPartial: true },
     },
     meals: {
-      hotLunch: { name: 'Hot lunch', fee: 4.16 },
-      coldTea: { name: 'Cold tea', fee: 2.75 },
+      hotLunch: { name: 'Hot lunch', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
+      coldTea: { name: 'Cold tea', fee: 2.92, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
     },
     funding: {
       enrichmentPerHour: 1.50,
@@ -120,8 +123,8 @@ export const NURSERIES = {
     },
     extras: {},
     meals: {
-      hotLunch: { name: 'Hot lunch', fee: 4.16 },
-      hotTea: { name: 'Hot tea', fee: 4.16 },
+      hotLunch: { name: 'Hot lunch', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
+      hotTea: { name: 'Hot tea', fee: 4.33, priceEffectiveDate: MEAL_PRICE_INCREASE_DATE },
     },
     funding: {
       enrichmentPerHour: 1.50,
@@ -157,6 +160,12 @@ export function hasExtra(nursery, extraKey) {
 // Check if nursery has a specific meal option
 export function hasMeal(nursery, mealKey) {
   return !!nursery.meals[mealKey];
+}
+
+// Whether a meal's price was recently changed and should still show a "from [date]" note
+export function isMealPriceUpcoming(nursery, mealKey, referenceDate = new Date()) {
+  const meal = nursery.meals[mealKey];
+  return !!(meal?.priceEffectiveDate && referenceDate < meal.priceEffectiveDate);
 }
 
 // Get session options for dropdown

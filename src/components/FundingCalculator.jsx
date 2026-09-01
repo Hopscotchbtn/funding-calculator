@@ -14,7 +14,7 @@ import {
   countSelectedDays,
   getFundingMilestones,
 } from '../utils/calculations';
-import { getAllNurseries, getNursery, hasPartialSessions } from '../utils/nurseryConfig';
+import { getAllNurseries, getNursery, hasPartialSessions, isMealPriceUpcoming } from '../utils/nurseryConfig';
 import HopscotchLogo from './HopscotchLogo';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -469,7 +469,7 @@ export default function FundingCalculator() {
         {/* Disclaimer */}
         <div className="mb-6 p-4 bg-hopscotch-sunshine/20 border border-hopscotch-sunshine/30 rounded-xl text-center">
           <p className="text-sm text-hopscotch-forest/80">
-            <strong>Please note:</strong> This is an estimate calculator only. Actual fees will be confirmed when you make a booking with the nursery.
+            <strong>Please note:</strong> This is an estimate calculator only. Actual fees will be confirmed when you make a booking with the nursery. Hot lunch and hot/cold tea prices shown are applicable from 7 September 2026.
           </p>
         </div>
 
@@ -985,23 +985,29 @@ export default function FundingCalculator() {
                       </p>
                     </div>
                     <div className="space-y-3">
-                      {Object.entries(nursery.meals).map(([mealKey, mealConfig]) => (
-                        <label
-                          key={mealKey}
-                          className={`flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${meals[mealKey] ? 'border-hopscotch-apple bg-hopscotch-apple/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={meals[mealKey] || false}
-                            onChange={() => handleMealToggle(mealKey)}
-                            className="w-6 h-6 text-hopscotch-apple focus:ring-hopscotch-apple rounded-lg border-2"
-                          />
-                          <div className="flex-1">
-                            <span className="font-semibold text-hopscotch-forest">{mealConfig.name}</span>
-                            <span className="text-hopscotch-forest/60 ml-2">{formatCurrency(mealConfig.fee)}/day</span>
-                          </div>
-                        </label>
-                      ))}
+                      {Object.entries(nursery.meals).map(([mealKey, mealConfig]) => {
+                        const showPriceNote = isMealPriceUpcoming(nursery, mealKey);
+                        return (
+                          <label
+                            key={mealKey}
+                            className={`flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${meals[mealKey] ? 'border-hopscotch-apple bg-hopscotch-apple/5' : 'border-gray-100 hover:border-hopscotch-sunshine/50'}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={meals[mealKey] || false}
+                              onChange={() => handleMealToggle(mealKey)}
+                              className="w-6 h-6 text-hopscotch-apple focus:ring-hopscotch-apple rounded-lg border-2"
+                            />
+                            <div className="flex-1">
+                              <span className="font-semibold text-hopscotch-forest">{mealConfig.name}</span>
+                              <span className="text-hopscotch-forest/60 ml-2">
+                                {formatCurrency(mealConfig.fee)}/day
+                                {showPriceNote && ` (from ${mealConfig.priceEffectiveDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })})`}
+                              </span>
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
                   </section>
                 )}

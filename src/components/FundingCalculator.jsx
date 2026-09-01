@@ -332,8 +332,8 @@ export default function FundingCalculator() {
     body += `\n\nNOTES\n`;
     body += `-`.repeat(30) + `\n`;
     body += `• This is an estimate - final fees confirmed at booking\n`;
-    body += `• Session fees valid from April 2026\n`;
-    body += `• Hot lunch and hot/cold tea prices valid from 7 September 2026\n`;
+    body += `• Session fees effective from April 2026\n`;
+    body += `• Hot lunch and hot/cold tea prices effective from 7 September 2026\n`;
     if (funding.eligible || isFutureEligible) {
       if (needsFundingCode) {
         body += `• Apply for your funding code at beststartinlife.gov.uk\n`;
@@ -470,7 +470,7 @@ export default function FundingCalculator() {
         {/* Disclaimer */}
         <div className="mb-6 p-4 bg-hopscotch-sunshine/20 border border-hopscotch-sunshine/30 rounded-xl text-center">
           <p className="text-sm text-hopscotch-forest/80">
-            <strong>Please note:</strong> This is an estimate calculator only. Actual fees will be confirmed when you make a booking with the nursery. Hot lunch and hot/cold tea prices shown are applicable from 7 September 2026.
+            <strong>Please note:</strong> This is an estimate calculator only. Actual fees will be confirmed when you make a booking with the nursery. Hot lunch and hot/cold tea prices shown are effective from 7 September 2026.
           </p>
         </div>
 
@@ -1347,7 +1347,7 @@ export default function FundingCalculator() {
 
               {/* Footer info */}
               <div className="mt-6 text-sm text-hopscotch-forest/50 space-y-1 text-center">
-                <p>Session fees valid from April 2026 · Meal prices valid from 7 September 2026</p>
+                <p>Session fees effective from April 2026 · Meal prices effective from 7 September 2026</p>
                 <p>This is an estimate - final fees confirmed at booking</p>
               </div>
             </div>

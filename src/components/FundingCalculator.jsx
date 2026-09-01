@@ -332,7 +332,8 @@ export default function FundingCalculator() {
     body += `\n\nNOTES\n`;
     body += `-`.repeat(30) + `\n`;
     body += `• This is an estimate - final fees confirmed at booking\n`;
-    body += `• Prices valid from April 2026\n`;
+    body += `• Session fees valid from April 2026\n`;
+    body += `• Hot lunch and hot/cold tea prices valid from 7 September 2026\n`;
     if (funding.eligible || isFutureEligible) {
       if (needsFundingCode) {
         body += `• Apply for your funding code at beststartinlife.gov.uk\n`;
@@ -1346,7 +1347,7 @@ export default function FundingCalculator() {
 
               {/* Footer info */}
               <div className="mt-6 text-sm text-hopscotch-forest/50 space-y-1 text-center">
-                <p>Prices valid from April 2026</p>
+                <p>Session fees valid from April 2026 · Meal prices valid from 7 September 2026</p>
                 <p>This is an estimate - final fees confirmed at booking</p>
               </div>
             </div>
